@@ -1,10 +1,3 @@
-
-## mab.dldcc.
-## Login name: yanmingl
-## Initial password: 99JH3pkzfNvQ
-
-
-#qsub -I -l walltime=120:00:00,nodes=1:ppn=2,vmem=210GB
 srun --tasks=1 --cpus-per-task=2 --mem=120G --time=120:00:00 --pty /bin/bash
 
 ##### fastqc
