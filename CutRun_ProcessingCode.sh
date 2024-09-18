@@ -35,7 +35,7 @@ do
    fastqc -o ../3_fastqc/ $R
 done
 
-##### bowtie2 alignment
+################################ bowtie2 alignment
 module load bowtie2/2.5.1
 #module load python/3.4.1
 
@@ -49,7 +49,7 @@ do
 done
 
 
-##### samtools and bedtools
+################################## samtools and bedtools
 module load samtools/1.15.1
 module load bedtools/2.31.1
 
@@ -106,7 +106,7 @@ done
 
 
 
-####### macs2 call peaks
+############################### macs2 call peaks
 module load  anaconda3/2019.10
 
 cd /project/lemaire/11_CutAndRun/5_samtools/
@@ -129,7 +129,7 @@ done
 macs2 callpeak -t SMC_Ct_H3K4M3_CKDL240008316-1A_H5MHCDSXC_L2_fixmate_sorted_markdup_rmBlackList.bam -c SMC_Ct_IgG_CKDL240008317-1A_H5MHCDSXC_L2_fixmate_sorted_markdup_rmBlackList.bam -f BAMPE -g hs -n M_c_H3K4Me3_rmBL -B --slocal 1500 --outdir ../7_macs2/ -q 0.05 --broad
 
 
-##### deeptools covert to bigwig
+########################## deeptools covert to bigwig
 module load  anaconda3/2019.10
 
 cd /project/lemaire/11_CutAndRun/5_samtools/
@@ -148,6 +148,46 @@ bamCoverage --bam M_c_IRF3_b_fixmate_sorted_markdup_rmBlackList.bam -o ../6_deep
 cd /project/lemaire/11_CutAndRun/6_deepTools/
 computeMatrix reference-point --referencePoint center -S SMC_Ct_IRF3_a_CKDL240008319-1A_H5MHCDSXC_L2_fixmate_sorted_markdup_rmBlackList.SeqDepthNorm.bw SMC_Ct_IRF3_CKDL240008326-1A_H5MHCDSXC_L2_fixmate_sorted_markdup_rmBlackList.SeqDepthNorm.bw SMC_HT_IRF3_CKDL240008327-1A_H5MHCDSXC_L2_fixmate_sorted_markdup_rmBlackList.SeqDepthNorm.bw -R SMC_HT_IRF3_CKDL240008327-1A_H5MHCDSXC_L2_rmBL_peaks.narrowPeak -a 3000 -b 3000 -o matrix_SMC_HtDNA_IRF3_Summit.mat.gz --skipZeros --sortRegions descend --sortUsing max --outFileSortedRegions regions_SMC_HtDNA_IRF3_Summit.bed --outFileNameMatrix matrix_SMC_HtDNA_IRF3_Summit.txt
 plotHeatmap -m matrix_SMC_HtDNA_IRF3_Summit.mat.gz -out Heatmap_on_SMC_HtDNA_IRF3_SummitSummit.pdf
+
+#################################### ploting heatmap of all H3K27ac pleaks (or H3K27Me3 peaks)
+module load bedtools/2.31.1
+cd /project/lemaire/11_CutAndRun/7_macs2/
+
+cat *_H3K27Ac_*.broadPeak > SMC_H3K27Ac_peaks.bed
+bedtools sort -i SMC_H3K27Ac_peaks.bed > SMC_H3K27Ac_peaks_sorted.bed
+bedtools merge -i SMC_H3K27Ac_peaks_sorted.bed > SMC_H3K27Ac_peaks_sorted_merge.bed
+
+cat *_H3K27M3_*.broadPeak > SMC_H3K27M3_peaks.bed
+bedtools sort -i SMC_H3K27M3_peaks.bed > SMC_H3K27M3_peaks_sorted.bed
+bedtools merge -i SMC_H3K27M3_peaks_sorted.bed > SMC_H3K27M3_peaks_sorted_merge.bed
+
+cd /project/lemaire/11_CutAndRun/6_deepTools/
+computeMatrix reference-point --referencePoint center -S WT_Ct_H3K27Ac_combined_fixmate_sorted_markdup_rmBlackList.SeqDepthNorm.bw WT_ht_H3K27Ac_combined_fixmate_sorted_markdup_rmBlackList.SeqDepthNorm.bw siIRF3_Ct_H3K27Ac_combined_fixmate_sorted_markdup_rmBlackList.SeqDepthNorm.bw siIRF3_ht_H3K27Ac_CKDL240013210-1A_HCHG2DSXC_L2_fixmate_sorted_markdup_rmBlackList.SeqDepthNorm.bw -R ../7_macs2/SMC_H3K27Ac_peaks_sorted_merge.bed -a 3000 -b 3000 -o matrix_SMC_H3K27Ac_Summit.mat.gz --skipZeros --sortRegions descend --sortUsing max --outFileSortedRegions regions_SMC_H3K27Ac_Summit.bed --outFileNameMatrix matrix_SMC_H3K27Ac_Summit.txt
+plotHeatmap -m matrix_SMC_H3K27Ac_Summit.mat.gz -out Heatmap_on_SMC_H3K27Ac_SummitSummit.pdf
+
+computeMatrix reference-point --referencePoint center -S WT_Ct_H3K27M3_CKDL240013203-1A_HCHG2DSXC_L1_fixmate_sorted_markdup_rmBlackList.SeqDepthNorm.bw WT_ht_H3K27M3_combined_fixmate_sorted_markdup_rmBlackList.SeqDepthNorm.bw siIRF3_Ct_H3K27M3_combined_fixmate_sorted_markdup_rmBlackList.SeqDepthNorm.bw siIRF3_ht_H3K27M3_CKDL240013206-1A_HCHG2DSXC_L1_fixmate_sorted_markdup_rmBlackList.SeqDepthNorm.bw -R ../7_macs2/SMC_H3K27M3_peaks_sorted_merge.bed -a 3000 -b 3000 -o matrix_SMC_H3K27M3_Summit.mat.gz --skipZeros --sortRegions descend --sortUsing max --outFileSortedRegions regions_SMC_H3K27M3_Summit.bed --outFileNameMatrix matrix_SMC_H3K27M3_Summit.txt
+plotHeatmap -m matrix_SMC_H3K27M3_Summit.mat.gz -out Heatmap_on_SMC_H3K27M3_SummitSummit.pdf
+
+################################## plotting heatmap over a list of genes
+cd /project/lemaire/0_ref/human/
+wget ftp://ftp.ensembl.org/pub/release-109/gtf/homo_sapiens/Homo_sapiens.GRCh38.109.gtf.gz
+gunzip Homo_sapiens.GRCh38.109.gtf.gz
+cd /project/lemaire/11_CutAndRun/6_deepTools/
+
+cat -v marker_OXPHOS.txt
+dos2unix marker_OXPHOS.txt
+genes=$(paste -sd '|' marker_OXPHOS.txt)
+grep -E "$genes" /project/lemaire/0_ref/human/Homo_sapiens.GRCh38.109.gtf > extracted_genes.gtf
+awk 'BEGIN {FS="\t"; OFS="\t"} $3 == "gene" {split($9, a, ";"); for (i in a) {if (a[i] ~ /gene_name/) {split(a[i], b, " "); gene_name = b[2]}} print "chr"$1, $4-1, $5, gene_name, ".", $7}' extracted_genes.gtf > genes.bed
+
+computeMatrix scale-regions -S WT_Ct_H3K27Ac_combined_fixmate_sorted_markdup_rmBlackList.SeqDepthNorm.bw WT_ht_H3K27Ac_combined_fixmate_sorted_markdup_rmBlackList.SeqDepthNorm.bw siIRF3_Ct_H3K27Ac_combined_fixmate_sorted_markdup_rmBlackList.SeqDepthNorm.bw siIRF3_ht_H3K27Ac_CKDL240013210-1A_HCHG2DSXC_L2_fixmate_sorted_markdup_rmBlackList.SeqDepthNorm.bw -R genes.bed --beforeRegionStartLength 3000 --regionBodyLength 5000 --afterRegionStartLength 3000 --skipZeros -o matrix_SMC_H3H27Ac_OXPHOSgenes.mat.gz
+
+plotHeatmap -m matrix_SMC_H3H27Ac_OXPHOSgenes.mat.gz -out Heatmap_matrix_SMC_H3H27Ac_OXPHOSgenes.pdf
+
+computeMatrix scale-regions -S WT_Ct_H3K27M3_CKDL240013203-1A_HCHG2DSXC_L1_fixmate_sorted_markdup_rmBlackList.SeqDepthNorm.bw WT_ht_H3K27M3_combined_fixmate_sorted_markdup_rmBlackList.SeqDepthNorm.bw siIRF3_Ct_H3K27M3_combined_fixmate_sorted_markdup_rmBlackList.SeqDepthNorm.bw siIRF3_ht_H3K27M3_CKDL240013206-1A_HCHG2DSXC_L1_fixmate_sorted_markdup_rmBlackList.SeqDepthNorm.bw -R genes.bed --beforeRegionStartLength 3000 --regionBodyLength 5000 --afterRegionStartLength 3000 --skipZeros -o matrix_SMC_H3K27M3_OXPHOSgenes.mat.gz
+
+plotHeatmap -m matrix_SMC_H3K27M3_OXPHOSgenes.mat.gz -out Heatmap_matrix_SMC_H3K27M3_OXPHOSgenes.pdf
+
 
 
 ######################## creat my own environment for bowtie2
